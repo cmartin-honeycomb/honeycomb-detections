@@ -1,0 +1,20 @@
+{
+  "name": "okta_account_support_access",
+  "description": "Okta Support access was granted via impersonation (user.session.impersonation.grant or .initiate).",
+  "source_detection": "rules/okta_rules/okta_account_support_access.py",
+  "environment": "okta",
+  "dataset": "okta",
+  "validation": {
+    "status": "dormant",
+    "hits_90d": 0,
+    "notes": "Portable. Zero user.session.impersonation.* events in 90d. Support impersonation is rare and security-sensitive (a third party gains access to the tenant). All required fields present (eventType, actor, source_ip)."
+  },
+  "query_spec": {
+    "time_range": "1h",
+    "filters": [
+      { "column": "okta.event.type", "op": "in", "value": ["user.session.impersonation.grant", "user.session.impersonation.initiate"] }
+    ],
+    "breakdowns": ["okta.actor.email", "net.peer.ip", "okta.event.type"],
+    "calculations": [{ "op": "COUNT" }]
+  }
+}

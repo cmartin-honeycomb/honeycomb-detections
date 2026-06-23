@@ -1,0 +1,24 @@
+{
+  "name": "okta_support_reset",
+  "description": "Okta Support reset a password or MFA factor on the tenant's behalf (actor system@okta.com, transaction id 'unknown', no client user agent or geo context).",
+  "source_detection": "rules/okta_rules/okta_support_reset.py",
+  "environment": "okta",
+  "dataset": "okta",
+  "validation": {
+    "status": "validated_spec",
+    "hits_90d": 0,
+    "notes": "Spec runs correctly; zero matches in 90d (no Okta-support-initiated resets occurred). The underlying event types exist, but the support signature did not match. Keep as a rare, defensive detection."
+  },
+  "query_spec": {
+    "time_range": "1h",
+    "filters": [
+      { "column": "okta.event.type", "op": "in", "value": ["user.account.reset_password", "user.mfa.factor.update", "system.mfa.factor.deactivate", "user.mfa.attempt_bypass"] },
+      { "column": "okta.actor.email", "op": "=", "value": "system@okta.com" },
+      { "column": "okta.transaction.id", "op": "=", "value": "unknown" },
+      { "column": "http.user_agent", "op": "does-not-exist" },
+      { "column": "geo.country", "op": "does-not-exist" }
+    ],
+    "breakdowns": ["okta.event.type", "okta.target.0.displayName"],
+    "calculations": [{ "op": "COUNT" }]
+  }
+}

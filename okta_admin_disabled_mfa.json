@@ -1,0 +1,21 @@
+{
+  "name": "okta_admin_disabled_mfa",
+  "description": "Org/account-wide MFA disabled by an admin (UDM ADMIN_MFA_DISABLED, which the Okta data model maps to eventType system.mfa.factor.deactivate).",
+  "source_detection": "rules/okta_rules/okta_admin_disabled_mfa.py",
+  "source_data_model": "data_models/okta_data_model.py",
+  "environment": "okta",
+  "dataset": "okta",
+  "validation": {
+    "status": "dormant",
+    "hits_90d": 0,
+    "notes": "Fully portable; all required fields exist (eventType, actor, source_ip). Zero system.mfa.factor.deactivate events in 90d. Rare and high-severity (org-wide MFA disable) - exactly the kind of detection worth pre-staging. Distinct from user.mfa.factor.deactivate (user-initiated, 53 events) which powers okta_user_mfa_reset."
+  },
+  "query_spec": {
+    "time_range": "1h",
+    "filters": [
+      { "column": "okta.event.type", "op": "=", "value": "system.mfa.factor.deactivate" }
+    ],
+    "breakdowns": ["okta.actor.email", "net.peer.ip"],
+    "calculations": [{ "op": "COUNT" }]
+  }
+}

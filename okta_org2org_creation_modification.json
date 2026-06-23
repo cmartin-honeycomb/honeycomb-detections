@@ -1,0 +1,27 @@
+{
+  "name": "okta_org2org_creation_modification",
+  "description": "An Okta Org2Org app was created or modified (application.lifecycle.{update,create,activate} with an 'Org2Org' target).",
+  "source_detection": "rules/okta_rules/okta_org2org_creation_modification.py",
+  "environment": "okta",
+  "dataset": "okta",
+  "validation": {
+    "status": "present_base",
+    "hits_90d": null,
+    "notes": "Base eventTypes are present (application.lifecycle.update=177, create=14, activate=1 over 90d); the Org2Org-target subset was not separately counted and is expected to be rare. Org2Org apps are a known persistence/lateral-movement vector. The 'Org2Org in target displayName' test is reproduced with a calculated field doing CONTAINS across the low-index target display names (positional flattening). Panther severity = HIGH on create, else MEDIUM."
+  },
+  "query_spec": {
+    "time_range": "1h",
+    "calculated_fields": [
+      {
+        "name": "target_is_org2org",
+        "expression": "OR(CONTAINS($okta.target.0.displayName, \"Org2Org\"), CONTAINS($okta.target.1.displayName, \"Org2Org\"), CONTAINS($okta.target.2.displayName, \"Org2Org\"), CONTAINS($okta.target.3.displayName, \"Org2Org\"))"
+      }
+    ],
+    "filters": [
+      { "column": "okta.event.type", "op": "in", "value": ["application.lifecycle.update", "application.lifecycle.create", "application.lifecycle.activate"] },
+      { "column": "target_is_org2org", "op": "=", "value": true }
+    ],
+    "breakdowns": ["okta.actor.email", "okta.event.type", "okta.target.0.displayName"],
+    "calculations": [{ "op": "COUNT" }]
+  }
+}

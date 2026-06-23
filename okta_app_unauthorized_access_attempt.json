@@ -1,0 +1,20 @@
+{
+  "name": "okta_app_unauthorized_access_attempt",
+  "description": "User attempted unauthorized access to an application (app.generic.unauth_app_access_attempt).",
+  "source_detection": "rules/okta_rules/okta_app_unauthorized_access_attempt.py",
+  "environment": "okta",
+  "dataset": "okta",
+  "validation": {
+    "status": "present",
+    "hits_90d": 459,
+    "notes": "Panther title uses target[0].alternateId, which Honeycomb does not ingest; degrades to okta.target.0.displayName."
+  },
+  "query_spec": {
+    "time_range": "1h",
+    "filters": [
+      { "column": "okta.event.type", "op": "=", "value": "app.generic.unauth_app_access_attempt" }
+    ],
+    "breakdowns": ["okta.actor.email", "okta.target.0.displayName"],
+    "calculations": [{ "op": "COUNT" }]
+  }
+}

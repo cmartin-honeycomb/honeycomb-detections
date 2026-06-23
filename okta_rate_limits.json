@@ -1,0 +1,21 @@
+{
+  "name": "okta_rate_limits",
+  "description": "Okta rate-limit / concurrency-limit violation (system.*.rate_limit.*.violation, core.concurrency.org.limit.violation).",
+  "source_detection": "rules/okta_rules/okta_rate_limits.py",
+  "environment": "okta",
+  "dataset": "okta",
+  "validation": {
+    "status": "present",
+    "hits_90d": 46,
+    "notes": "Present: system.operation.rate_limit.violation=23, system.client.concurrency_rate_limit.violation=20, system.client.rate_limit.violation=3 over 90d. The Panther rule fnmatches a set of rate-limit patterns but additionally requires 'violation' in the eventType - so the warning/exceeded variants (e.g. app.oauth2.client_id_rate_limit_warning) never actually match. Reproduced here with contains 'limit' AND contains 'violation', which captures exactly the matching event family."
+  },
+  "query_spec": {
+    "time_range": "1h",
+    "filters": [
+      { "column": "okta.event.type", "op": "contains", "value": "limit" },
+      { "column": "okta.event.type", "op": "contains", "value": "violation" }
+    ],
+    "breakdowns": ["okta.event.type", "okta.actor.email", "okta.actor.type"],
+    "calculations": [{ "op": "COUNT" }]
+  }
+}

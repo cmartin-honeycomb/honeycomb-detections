@@ -1,0 +1,20 @@
+{
+  "name": "okta_user_reported_suspicious_activity",
+  "description": "An end user reported suspicious activity on their account (user.account.report_suspicious_activity_by_enduser).",
+  "source_detection": "rules/okta_rules/okta_user_reported_suspicious_activity.py",
+  "environment": "okta",
+  "dataset": "okta",
+  "validation": {
+    "status": "dormant_degraded",
+    "hits_90d": 0,
+    "notes": "Zero report_suspicious_activity_by_enduser events in 90d. The detection (the eventType itself) ports cleanly. DEGRADED: Panther title includes debugContext.debugData.suspiciousActivityEventType (the activity the user flagged), which is NOT ingested, so that context is lost. A user-reported compromise is a high-value, low-volume signal."
+  },
+  "query_spec": {
+    "time_range": "1h",
+    "filters": [
+      { "column": "okta.event.type", "op": "=", "value": "user.account.report_suspicious_activity_by_enduser" }
+    ],
+    "breakdowns": ["okta.actor.email"],
+    "calculations": [{ "op": "COUNT" }]
+  }
+}

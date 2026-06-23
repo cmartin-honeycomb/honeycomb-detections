@@ -1,0 +1,20 @@
+{
+  "name": "okta_login_without_push_marker",
+  "description": "Login from a device whose user agent does not end with the org's expected Okta Verify Push marker.",
+  "source_detection": "rules/okta_rules/okta_login_without_push_marker.py",
+  "environment": "okta",
+  "dataset": "okta",
+  "validation": {
+    "status": "needs_config",
+    "notes": "TEMPLATE. The Panther rule has no event-type scope and relies on a custom, environment-specific Push marker (placeholder PS_mxzqarw). As written it would match nearly all traffic. Replace the marker with the org's real value and confirm the event-type scope before deploying."
+  },
+  "query_spec": {
+    "time_range": "1h",
+    "filters": [
+      { "column": "okta.event.type", "op": "=", "value": "user.authentication.auth_via_mfa" },
+      { "column": "http.user_agent", "op": "does-not-end-with", "value": "PS_mxzqarw" }
+    ],
+    "breakdowns": ["okta.actor.displayName", "http.user_agent"],
+    "calculations": [{ "op": "COUNT" }]
+  }
+}

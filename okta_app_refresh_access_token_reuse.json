@@ -1,0 +1,20 @@
+{
+  "name": "okta_app_refresh_access_token_reuse",
+  "description": "OAuth2 access/refresh token reuse detected (app.oauth2.as.token.detect_reuse or app.oauth2.token.detect_reuse).",
+  "source_detection": "rules/okta_rules/okta_app_refresh_access_token_reuse.py",
+  "environment": "okta",
+  "dataset": "okta",
+  "validation": {
+    "status": "dormant",
+    "hits_90d": 0,
+    "notes": "Portable. Zero detect_reuse events in 90d. Token reuse is a strong indicator of token theft - rare but high-signal. client.ipAddress maps to net.peer.ip."
+  },
+  "query_spec": {
+    "time_range": "1h",
+    "filters": [
+      { "column": "okta.event.type", "op": "in", "value": ["app.oauth2.as.token.detect_reuse", "app.oauth2.token.detect_reuse"] }
+    ],
+    "breakdowns": ["okta.actor.displayName", "net.peer.ip"],
+    "calculations": [{ "op": "COUNT" }]
+  }
+}

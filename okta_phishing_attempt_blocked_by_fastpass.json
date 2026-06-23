@@ -1,0 +1,22 @@
+{
+  "name": "okta_phishing_attempt_blocked_by_fastpass",
+  "description": "Okta FastPass declined a phishing attempt (auth_via_mfa FAILURE with reason 'FastPass declined phishing attempt').",
+  "source_detection": "rules/okta_rules/okta_phishing_attempt_blocked_by_fastpass.py",
+  "environment": "okta",
+  "dataset": "okta",
+  "validation": {
+    "status": "validated_spec",
+    "hits_90d": 0,
+    "notes": "Spec runs correctly; zero matches in 90d (no FastPass phishing blocks occurred). Expected to be quiet for a rare security signal."
+  },
+  "query_spec": {
+    "time_range": "1h",
+    "filters": [
+      { "column": "okta.event.type", "op": "=", "value": "user.authentication.auth_via_mfa" },
+      { "column": "okta.outcome.result", "op": "=", "value": "FAILURE" },
+      { "column": "okta.outcome.reason", "op": "=", "value": "FastPass declined phishing attempt" }
+    ],
+    "breakdowns": ["okta.actor.displayName", "okta.actor.email"],
+    "calculations": [{ "op": "COUNT" }]
+  }
+}

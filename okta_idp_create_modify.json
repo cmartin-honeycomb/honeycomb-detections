@@ -1,0 +1,20 @@
+{
+  "name": "okta_idp_create_modify",
+  "description": "An Identity Provider was created or modified (eventType contains 'system.idp.lifecycle').",
+  "source_detection": "rules/okta_rules/okta_idp_create_modify.py",
+  "environment": "okta",
+  "dataset": "okta",
+  "validation": {
+    "status": "dormant",
+    "hits_90d": 0,
+    "notes": "Portable. Zero system.idp.lifecycle.* events in 90d. IdP creation/modification is rare and security-critical (adds a federation trust). Panther severity = HIGH when the action is 'create', else MEDIUM; reproduce with a second trigger filtering okta.event.type = system.idp.lifecycle.create, or split by action via the okta.event.type breakdown."
+  },
+  "query_spec": {
+    "time_range": "1h",
+    "filters": [
+      { "column": "okta.event.type", "op": "starts-with", "value": "system.idp.lifecycle" }
+    ],
+    "breakdowns": ["okta.actor.email", "okta.event.type", "okta.target.0.displayName"],
+    "calculations": [{ "op": "COUNT" }]
+  }
+}

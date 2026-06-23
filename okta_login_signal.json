@@ -1,0 +1,20 @@
+{
+  "name": "okta_login_signal",
+  "description": "Successful Okta login (user.session.start). This is a signal/building block, not a standalone alert.",
+  "source_detection": "rules/okta_rules/okta_login_signal.py",
+  "environment": "okta",
+  "dataset": "okta",
+  "validation": {
+    "status": "present",
+    "notes": "High volume (~16k sessions / 90d). Intended as a signal, not an alert."
+  },
+  "query_spec": {
+    "time_range": "1h",
+    "filters": [
+      { "column": "okta.event.type", "op": "=", "value": "user.session.start" },
+      { "column": "okta.outcome.result", "op": "=", "value": "SUCCESS" }
+    ],
+    "breakdowns": ["okta.actor.displayName", "okta.actor.email"],
+    "calculations": [{ "op": "COUNT" }]
+  }
+}

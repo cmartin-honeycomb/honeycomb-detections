@@ -1,0 +1,28 @@
+{
+  "name": "okta_admin_role_assigned",
+  "description": "An Okta administrator role was granted to a user (user.account.privilege.grant, SUCCESS) where the granted privilege name matches the regex '[aA]dministrator'.",
+  "source_detection": "rules/okta_rules/okta_admin_role_assigned.py",
+  "environment": "okta",
+  "dataset": "okta",
+  "validation": {
+    "status": "validated",
+    "hits_90d": 16,
+    "notes": "The Panther rule keys on debugContext.debugData.privilegeGranted, which is NOT ingested in Honeycomb. Reconstructed by regex-matching the granted role name in the positionally-flattened target array (okta.target.N.displayName). okta.legacy_event_type = core.user.admin_privilege.granted confirms these are admin-privilege grants. Validated 16/18 privilege.grant events match (the 2 misses are 'RevOps App Admin' / custom role bindings that the Panther '[aA]dministrator' regex would also exclude). Severity escalation in the Panther rule ('Super administrator' -> HIGH) is reconstructable the same way against the target display-name columns. Dedup in Panther uses debugContext.debugData.requestId (not ingested); okta.request.id or okta.transaction.id are the closest available."
+  },
+  "query_spec": {
+    "time_range": "1h",
+    "calculated_fields": [
+      {
+        "name": "admin_role_granted",
+        "expression": "OR(REG_MATCH($okta.target.0.displayName, \"[aA]dministrator\"), REG_MATCH($okta.target.1.displayName, \"[aA]dministrator\"), REG_MATCH($okta.target.2.displayName, \"[aA]dministrator\"), REG_MATCH($okta.target.3.displayName, \"[aA]dministrator\"), REG_MATCH($okta.target.4.displayName, \"[aA]dministrator\"))"
+      }
+    ],
+    "filters": [
+      { "column": "okta.event.type", "op": "=", "value": "user.account.privilege.grant" },
+      { "column": "okta.outcome.result", "op": "=", "value": "SUCCESS" },
+      { "column": "admin_role_granted", "op": "=", "value": true }
+    ],
+    "breakdowns": ["okta.actor.email", "okta.target.0.displayName", "okta.target.2.displayName"],
+    "calculations": [{ "op": "COUNT" }]
+  }
+}

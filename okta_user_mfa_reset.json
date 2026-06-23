@@ -1,0 +1,22 @@
+{
+  "name": "okta_user_mfa_reset",
+  "description": "A user reset their own MFA factor. Panther's UDM event_type MFA_RESET resolves (via the Okta data model) to a factor deactivate/suspend whose outcome reason starts with 'User reset'.",
+  "source_detection": "rules/okta_rules/okta_user_mfa_reset.py",
+  "source_data_model": "data_models/okta_data_model.py",
+  "environment": "okta",
+  "dataset": "okta",
+  "validation": {
+    "status": "validated",
+    "hits_90d": 56,
+    "notes": "Factor name in the Panther title comes from okta.outcome.reason (e.g. 'User reset FIDO_WEBAUTHN factor'), surfaced here as a breakdown."
+  },
+  "query_spec": {
+    "time_range": "1h",
+    "filters": [
+      { "column": "okta.event.type", "op": "in", "value": ["user.mfa.factor.deactivate", "user.mfa.factor.suspend"] },
+      { "column": "okta.outcome.reason", "op": "starts-with", "value": "User reset" }
+    ],
+    "breakdowns": ["okta.actor.email", "okta.target.0.displayName", "okta.outcome.reason"],
+    "calculations": [{ "op": "COUNT" }]
+  }
+}

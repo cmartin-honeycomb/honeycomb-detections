@@ -1,0 +1,28 @@
+{
+  "name": "okta_sso_to_aws",
+  "description": "Successful SSO into AWS IAM Identity Center via Okta.",
+  "source_detection": "rules/okta_rules/okta_sso_to_aws.py",
+  "environment": "okta",
+  "dataset": "okta",
+  "validation": {
+    "status": "validated",
+    "hits_90d": 2510,
+    "notes": "Honeycomb flattens the Okta target array positionally (okta.target.N.displayName). The calculated field ORs the low-index target display names to reproduce the Panther deep_walk membership test. Extend indices, or switch EQUALS to CONTAINS, if the AWS app name is suffixed or lands at a higher index."
+  },
+  "query_spec": {
+    "time_range": "1h",
+    "calculated_fields": [
+      {
+        "name": "sso_target_is_aws",
+        "expression": "OR(EQUALS($okta.target.0.displayName, \"AWS IAM Identity Center\"), EQUALS($okta.target.1.displayName, \"AWS IAM Identity Center\"), EQUALS($okta.target.2.displayName, \"AWS IAM Identity Center\"), EQUALS($okta.target.3.displayName, \"AWS IAM Identity Center\"))"
+      }
+    ],
+    "filters": [
+      { "column": "okta.event.type", "op": "=", "value": "user.authentication.sso" },
+      { "column": "okta.outcome.result", "op": "=", "value": "SUCCESS" },
+      { "column": "sso_target_is_aws", "op": "=", "value": true }
+    ],
+    "breakdowns": ["okta.actor.email"],
+    "calculations": [{ "op": "COUNT" }]
+  }
+}

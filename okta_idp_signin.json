@@ -1,0 +1,20 @@
+{
+  "name": "okta_idp_signin",
+  "description": "A user signed in via a third-party Identity Provider (user.authentication.auth_via_IDP).",
+  "source_detection": "rules/okta_rules/okta_idp_signin.py",
+  "environment": "okta",
+  "dataset": "okta",
+  "validation": {
+    "status": "dormant",
+    "hits_90d": 0,
+    "notes": "Portable. Zero user.authentication.auth_via_IDP events in 90d (no external IdP federation in use, or not ingested). Panther title resolves the IdP from the first target displayName (okta.target.0.displayName)."
+  },
+  "query_spec": {
+    "time_range": "1h",
+    "filters": [
+      { "column": "okta.event.type", "op": "=", "value": "user.authentication.auth_via_IDP" }
+    ],
+    "breakdowns": ["okta.actor.email", "okta.target.0.displayName"],
+    "calculations": [{ "op": "COUNT" }]
+  }
+}

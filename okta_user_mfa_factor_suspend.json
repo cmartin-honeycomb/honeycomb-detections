@@ -1,0 +1,21 @@
+{
+  "name": "okta_user_mfa_factor_suspend",
+  "description": "An authentication factor was suspended for a user (user.mfa.factor.suspend, SUCCESS).",
+  "source_detection": "rules/okta_rules/okta_user_mfa_factor_suspend.py",
+  "environment": "okta",
+  "dataset": "okta",
+  "validation": {
+    "status": "dormant",
+    "hits_90d": 0,
+    "notes": "Portable. Zero user.mfa.factor.suspend events in 90d. Panther title uses target[0].alternateId (not ingested); degraded to okta.target.0.displayName."
+  },
+  "query_spec": {
+    "time_range": "1h",
+    "filters": [
+      { "column": "okta.event.type", "op": "=", "value": "user.mfa.factor.suspend" },
+      { "column": "okta.outcome.result", "op": "=", "value": "SUCCESS" }
+    ],
+    "breakdowns": ["okta.actor.email", "okta.target.0.displayName"],
+    "calculations": [{ "op": "COUNT" }]
+  }
+}

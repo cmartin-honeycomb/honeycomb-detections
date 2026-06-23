@@ -1,0 +1,20 @@
+{
+  "name": "okta_threatinsight_security_threat_detected",
+  "description": "Okta ThreatInsight flagged potentially malicious behavior (security.threat.detected).",
+  "source_detection": "rules/okta_rules/okta_threatinsight_security_threat_detected.py",
+  "environment": "okta",
+  "dataset": "okta",
+  "validation": {
+    "status": "dormant_degraded",
+    "hits_90d": 0,
+    "notes": "Zero security.threat.detected events in 90d. The core detection (the eventType itself) ports cleanly. DEGRADED: Panther derives severity from debugContext.debugData.threatDetections (CRITICAL/HIGH/MEDIUM/...), which is NOT ingested - so the per-threat severity tiering cannot be reproduced. okta.outcome.result is available (Panther downgrades DENY outcomes to INFO). Treat all matches as elevated until/unless threatDetections is added to ingestion."
+  },
+  "query_spec": {
+    "time_range": "1h",
+    "filters": [
+      { "column": "okta.event.type", "op": "=", "value": "security.threat.detected" }
+    ],
+    "breakdowns": ["okta.actor.displayName", "okta.actor.email", "okta.outcome.result"],
+    "calculations": [{ "op": "COUNT" }]
+  }
+}

@@ -1,0 +1,20 @@
+{
+  "name": "okta_group_admin_role_assigned",
+  "description": "Admin privileges assigned to a group (group.privilege.grant).",
+  "source_detection": "rules/okta_rules/okta_group_admin_role_assigned.py",
+  "environment": "okta",
+  "dataset": "okta",
+  "validation": {
+    "status": "dormant",
+    "hits_90d": 0,
+    "notes": "Portable. Zero group.privilege.grant events in 90d. Group-level admin grants are rare but high-impact. Panther title uses target[0].alternateId (not ingested); degraded to okta.target.0.displayName."
+  },
+  "query_spec": {
+    "time_range": "1h",
+    "filters": [
+      { "column": "okta.event.type", "op": "=", "value": "group.privilege.grant" }
+    ],
+    "breakdowns": ["okta.actor.email", "okta.target.0.displayName"],
+    "calculations": [{ "op": "COUNT" }]
+  }
+}
