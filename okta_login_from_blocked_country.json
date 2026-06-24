@@ -1,0 +1,22 @@
+{
+  "name": "okta_login_from_blocked_country",
+  "description": "A user successfully signed in from a country on the org's high-risk/blocked list (user.session.start with geo.country in a configured deny-list).",
+  "source_detection": null,
+  "environment": "okta",
+  "dataset": "okta",
+  "validation": {
+    "status": "needs_config",
+    "hits_90d": null,
+    "notes": "Honeycomb-native detection - there is no Panther Okta equivalent (Panther uses geo-velocity / 'New Geo-Location' behavior heuristics rather than a fixed country list). TEMPLATE: replace the geo.country deny-list with the org's actual high-risk/sanctioned countries before deploying. The default list (North Korea, Iran, Syria, Cuba, Russia, Belarus) is an illustrative OFAC-style starting point only - confirm each value against the exact geo.country display strings emitted in this dataset, because the field uses full English display names (observed: 'United States', 'United Kingdom', 'The Netherlands', 'Hong Kong') and the spelling/format for the blocked countries cannot be validated here (zero traffic from them in 90d). geo.country values are populated and the 'in' operator was validated against live low-volume countries (Egypt/Thailand/Singapore). LIMITATIONS: country granularity only - sanctioned sub-national regions (e.g. Crimea, Donetsk, Luhansk) resolve to their parent country and are not separable; VPN/proxy egress can mask or fake the apparent country (pair with okta_anonymizing_vpn_login). Filtering to okta.outcome.result = SUCCESS targets completed logins; drop that filter to also catch blocked-country attempts."
+  },
+  "query_spec": {
+    "time_range": "1h",
+    "filters": [
+      { "column": "okta.event.type", "op": "=", "value": "user.session.start" },
+      { "column": "okta.outcome.result", "op": "=", "value": "SUCCESS" },
+      { "column": "geo.country", "op": "in", "value": ["North Korea", "Iran", "Syria", "Cuba", "Russia", "Belarus"] }
+    ],
+    "breakdowns": ["okta.actor.email", "geo.country", "geo.city", "net.peer.as.org"],
+    "calculations": [{ "op": "COUNT" }]
+  }
+}
