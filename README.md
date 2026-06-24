@@ -76,6 +76,14 @@ they are rare and significant - so they ship pre-staged and ready to fire.
   staged coverage. Where status is `*_degraded`, the missing field
   (`debugContext.debugData.*`, `target[].alternateId`) is a candidate to add to
   the ingestion pipeline to restore full fidelity.
+- **`okta_login_from_blocked_country` is a point-in-time snapshot.** Its
+  `geo.country` deny-list is pulled from the U.S. State Department travel
+  advisories page
+  (<https://travel.state.gov/en/international-travel/travel-advisories.html>) -
+  the country-wide Level 4 "Do Not Travel" list as of 2026-06-24. Advisory
+  levels change regularly (Ukraine, Lebanon, and Uganda have all shifted in
+  recent cycles), so the list will drift out of date and should be re-pulled
+  periodically and the spec updated to match.
 
 ## Not ported (logic not expressible as a single Honeycomb query)
 
