@@ -1,0 +1,21 @@
+{
+  "name": "okta_anonymizing_vpn_login",
+  "description": "A user signed in through an anonymizing proxy/VPN (user.session.start with isProxy true).",
+  "source_detection": "rules/okta_rules/okta_anonymizing_vpn_login.py",
+  "environment": "okta",
+  "dataset": "okta",
+  "validation": {
+    "status": "validated_degraded",
+    "hits_90d": 493,
+    "notes": "Previously not ported because okta.security.is_proxy was not ingested. It is now present (boolean), so the core Panther rule (eventType == user.session.start AND securityContext.isProxy) ports 1:1. DEGRADED: the Panther severity logic demotes Apple Private Relay to INFO via p_enrichment.ipinfo_privacy, which Honeycomb does not ingest; all matches surface at the same severity here. HIGH VOLUME / TUNING: 493 hits/90d are dominated by legitimate corporate VPN/CDN egress (Fastly, Cloudflare, Google One VPN, office networks). For a usable alert, pair with okta.debug.risk CONTAINS \"Anonymizing Proxy\" or risk level HIGH, exclude known-good ASNs (net.peer.as.org / net.peer.as.number), or treat this as an enrichment signal rather than a standalone page. net.peer.as.org, net.peer.domain, and net.peer.isp are surfaced as context in place of the Panther asOrg/isp/domain title fields."
+  },
+  "query_spec": {
+    "time_range": "1h",
+    "filters": [
+      { "column": "okta.event.type", "op": "=", "value": "user.session.start" },
+      { "column": "okta.security.is_proxy", "op": "=", "value": true }
+    ],
+    "breakdowns": ["okta.actor.email", "net.peer.as.org", "net.peer.domain", "okta.debug.risk"],
+    "calculations": [{ "op": "COUNT" }]
+  }
+}

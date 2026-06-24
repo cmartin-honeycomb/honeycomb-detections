@@ -1,0 +1,26 @@
+{
+  "name": "okta_login_multi_country_per_user",
+  "description": "A single user successfully signed in from more than one distinct country within the window (per-user geo-velocity / novelty building block).",
+  "source_detection": null,
+  "environment": "okta",
+  "dataset": "okta",
+  "validation": {
+    "status": "validated",
+    "hits_90d": 4,
+    "notes": "Honeycomb-native. This is the stateless, single-query approximation of per-user geo-novelty: rather than maintaining each user's historical country set (which a stateless query cannot do), it flags a user appearing in 2+ distinct geo.country values within the trigger window. Validated over a 7d window: 4 users showed 2 countries each - a tight, pageable signal. WINDOW IS THE KNOB: a short time_range (e.g. 1h) makes this a high-confidence impossible-travel signal (two countries in one hour is rarely legitimate); a longer window (24h+) broadens toward 'travelled / used a VPN today'. Set the HAVING threshold higher (>2) to surface only multi-hop cases. CONTEXT: the query groups by okta.actor.email with COUNT_DISTINCT(geo.country); to see WHICH countries, pivot the matching window in the UI (adding geo.country to breakdowns would make every group distinct=1 and defeat the HAVING). TRUE per-user first-seen-country novelty ('a country this user has never used before') requires a cross-window baseline and is therefore stateful - not expressible as this single query; build it from this as a baseline diff or a stateful rule. LIMITATIONS: geo is IP-derived and VPN/proxy-spoofable; corporate VPN egress in a second country is a common benign cause - pair with okta.security.is_proxy to separate."
+  },
+  "query_spec": {
+    "time_range": "24h",
+    "filters": [
+      { "column": "okta.event.type", "op": "=", "value": "user.session.start" },
+      { "column": "okta.outcome.result", "op": "=", "value": "SUCCESS" }
+    ],
+    "breakdowns": ["okta.actor.email"],
+    "calculations": [
+      { "op": "COUNT_DISTINCT", "column": "geo.country", "name": "distinct_countries" }
+    ],
+    "havings": [
+      { "column": "distinct_countries", "op": ">", "value": 1 }
+    ]
+  }
+}

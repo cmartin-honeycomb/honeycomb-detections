@@ -1,0 +1,22 @@
+{
+  "name": "okta_login_from_blocked_country",
+  "description": "A user successfully signed in from a country on the org's high-risk/blocked list (user.session.start with geo.country in a configured deny-list).",
+  "source_detection": null,
+  "environment": "okta",
+  "dataset": "okta",
+  "validation": {
+    "status": "needs_config",
+    "hits_90d": 0,
+    "notes": "Honeycomb-native detection - there is no Panther Okta equivalent (Panther uses geo-velocity / 'New Geo-Location' behavior heuristics rather than a fixed country list). The deny-list is the set of countries with a country-wide U.S. State Department Level 4 'Do Not Travel' advisory, captured 2026-06-24 from https://travel.state.gov/en/international-travel/travel-advisories.html (23 countries: Afghanistan, Belarus, Burkina Faso, Burma/Myanmar, Central African Republic, Chad, D.R. Congo, Haiti, Iran, Iraq, Lebanon, Libya, Mali, Niger, North Korea, Russia, Somalia, South Sudan, Sudan, Syria, Uganda, Ukraine, Yemen). Countries with a Level 4 advisory only for specific sub-national regions (e.g. Oman/Saudi Arabia Yemen-border, parts of Guatemala/Mexico) are intentionally excluded because geo.country is country-granularity. MAINTENANCE: advisory levels change - re-pull periodically. NAMING: geo.country values come from MaxMind (confirmed by 'Czechia'/'U.S. Virgin Islands' in live data), so the list uses MaxMind canonical names plus the two highest-value aliases (Burma+Myanmar, Russia+Russian Federation). Other MaxMind spellings could not be validated here (zero traffic from these countries in 90d) - confirm against live data if a match is ever expected to be missed. The 'in' operator was validated on geo.country against live low-volume countries (Egypt/Thailand/Singapore) and the full deny-list executes cleanly (0 hits/90d). LIMITATIONS: country granularity only; VPN/proxy egress can mask or fake the apparent country (pair with okta_anonymizing_vpn_login). Filtering to okta.outcome.result = SUCCESS targets completed logins; drop that filter to also catch blocked-country attempts."
+  },
+  "query_spec": {
+    "time_range": "1h",
+    "filters": [
+      { "column": "okta.event.type", "op": "=", "value": "user.session.start" },
+      { "column": "okta.outcome.result", "op": "=", "value": "SUCCESS" },
+      { "column": "geo.country", "op": "in", "value": ["Afghanistan", "Belarus", "Burkina Faso", "Myanmar", "Burma", "Central African Republic", "Chad", "Democratic Republic of the Congo", "Haiti", "Iran", "Iraq", "Lebanon", "Libya", "Mali", "Niger", "North Korea", "Russia", "Russian Federation", "Somalia", "South Sudan", "Sudan", "Syria", "Uganda", "Ukraine", "Yemen"] }
+    ],
+    "breakdowns": ["okta.actor.email", "geo.country", "geo.city", "net.peer.as.org"],
+    "calculations": [{ "op": "COUNT" }]
+  }
+}

@@ -1,0 +1,22 @@
+{
+  "name": "okta_login_from_unexpected_country",
+  "description": "A user successfully signed in from a country outside the org's expected/allowed set (user.session.start with geo.country NOT in a configured allow-list).",
+  "source_detection": null,
+  "environment": "okta",
+  "dataset": "okta",
+  "validation": {
+    "status": "needs_config",
+    "hits_90d": 111,
+    "notes": "Honeycomb-native novelty detector - the inverse of okta_login_from_blocked_country. Instead of enumerating bad countries, it enumerates the EXPECTED ones and fires on anything else, so it catches logins from places the org does not normally operate (the unknown-unknowns a blocklist misses). TEMPLATE: replace the geo.country allow-list with the countries where the workforce legitimately logs in. The default set (US, Canada, UK, Australia, Ireland, Netherlands, France, Japan, Philippines, Germany - the recurring countries observed over 90d, which read as remote staff) yielded 111 events across 19 countries in 90d - a review-tier volume, not a page. TUNING: right-size the allow-list to your actual staff footprint; gate on okta.debug.risk = HIGH or okta.security.is_proxy = true so an unexpected country PLUS a corroborating signal is what escalates; or pair with okta_login_multi_country_per_user for a velocity/novelty angle. geo.country uses full English display names ('United States', 'The Netherlands', 'Hong Kong'); 'not-in' validated against live data. LIMITATIONS: geo is IP-derived and VPN/proxy-spoofable (a foreign VPN exit makes a domestic user look foreign and vice versa); country granularity only. Deploy as a lower-severity review signal rather than a page."
+  },
+  "query_spec": {
+    "time_range": "1h",
+    "filters": [
+      { "column": "okta.event.type", "op": "=", "value": "user.session.start" },
+      { "column": "okta.outcome.result", "op": "=", "value": "SUCCESS" },
+      { "column": "geo.country", "op": "not-in", "value": ["United States", "Canada", "United Kingdom", "Australia", "Ireland", "Netherlands", "The Netherlands", "France", "Japan", "Philippines", "Germany"] }
+    ],
+    "breakdowns": ["okta.actor.email", "geo.country", "geo.city", "net.peer.as.org"],
+    "calculations": [{ "op": "COUNT" }]
+  }
+}
