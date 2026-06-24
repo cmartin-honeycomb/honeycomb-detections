@@ -1,0 +1,32 @@
+{
+  "name": "okta_new_behavior_accessing_admin_console",
+  "description": "A user accessed the Okta Admin Console with both a new device and a new IP (policy.evaluate_sign_on where the behavior heuristics flag New Device=POSITIVE and New IP=POSITIVE).",
+  "source_detection": "rules/okta_rules/okta_new_behavior_accessing_admin_console.py",
+  "environment": "okta",
+  "dataset": "okta",
+  "validation": {
+    "status": "dormant",
+    "hits_90d": 0,
+    "notes": "Previously not ported because debugContext.debugData.behaviors was not ingested. The behavior heuristics are now available. IMPORTANT: on policy.evaluate_sign_on events in this tenant, the flat okta.debug.behaviors field is empty/all-NEGATIVE; the live behavior signal is carried in okta.debug.logOnlySecurityData (JSON). This mirrors the Panther rule, which reads debugData.behaviors first and falls back to parsing logOnlySecurityData. The new_device_and_ip calculated field therefore checks BOTH forms: the Java-map form (New Device=POSITIVE) on okta.debug.behaviors and the JSON form (\"New Device\":\"POSITIVE\") on okta.debug.logOnlySecurityData. 'Okta Admin Console' appears at varying target indices (the requested authenticators occupy the low positions), so admin_console_target ORs CONTAINS across okta.target.0..4.displayName to reproduce the Panther deep_walk(target, displayName) test; CONTAINS \"Okta Admin Console\" excludes the unrelated 'Jamf Pro - Admin Console' app. Zero matches in 90d (no admin-console access with both a new device and a new IP) - dormant by design for a high-value account-takeover signal."
+  },
+  "query_spec": {
+    "time_range": "1h",
+    "calculated_fields": [
+      {
+        "name": "admin_console_target",
+        "expression": "OR(CONTAINS($okta.target.0.displayName, \"Okta Admin Console\"), CONTAINS($okta.target.1.displayName, \"Okta Admin Console\"), CONTAINS($okta.target.2.displayName, \"Okta Admin Console\"), CONTAINS($okta.target.3.displayName, \"Okta Admin Console\"), CONTAINS($okta.target.4.displayName, \"Okta Admin Console\"))"
+      },
+      {
+        "name": "new_device_and_ip",
+        "expression": "OR(AND(CONTAINS($okta.debug.behaviors, \"New Device=POSITIVE\"), CONTAINS($okta.debug.behaviors, \"New IP=POSITIVE\")), AND(CONTAINS($okta.debug.logOnlySecurityData, \"\\\"New Device\\\":\\\"POSITIVE\\\"\"), CONTAINS($okta.debug.logOnlySecurityData, \"\\\"New IP\\\":\\\"POSITIVE\\\"\")))"
+      }
+    ],
+    "filters": [
+      { "column": "okta.event.type", "op": "=", "value": "policy.evaluate_sign_on" },
+      { "column": "admin_console_target", "op": "=", "value": true },
+      { "column": "new_device_and_ip", "op": "=", "value": true }
+    ],
+    "breakdowns": ["okta.actor.email", "okta.actor.displayName"],
+    "calculations": [{ "op": "COUNT" }]
+  }
+}
